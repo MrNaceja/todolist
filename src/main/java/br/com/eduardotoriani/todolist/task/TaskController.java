@@ -50,10 +50,17 @@ public class TaskController {
     }
 
     @PutMapping("/{id}")
-    public TaskModel update(@RequestBody TaskModel task, @PathVariable UUID id) {
+    public ResponseEntity update(@RequestBody TaskModel task, HttpServletRequest request, @PathVariable UUID id) {
+        UUID user = (UUID) request.getAttribute("idUser");
         TaskModel taskToUpdate = this.repository.findById(id).orElse(null);
+        if (taskToUpdate == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("A tarefa não existe.");
+        }
+        if (!taskToUpdate.getIdUser().equals(user)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("O usuário autenticado não possui permissão para alterar esta tarefa.");
+        }
         Utils.beanNonNullProps(task, taskToUpdate);
-        return this.repository.save(taskToUpdate);
+        return ResponseEntity.ok().body(this.repository.save(taskToUpdate));
     }
 
 }
