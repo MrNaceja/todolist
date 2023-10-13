@@ -23,6 +23,6 @@ public class TaskModel {
     private String description;
     private LocalDateTime begins;
     private LocalDateTime ends;
-    private Integer priority;
+    private String priority;
 
 }

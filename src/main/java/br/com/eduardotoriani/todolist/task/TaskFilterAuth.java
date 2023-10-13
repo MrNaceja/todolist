@@ -25,7 +25,20 @@ public class TaskFilterAuth extends OncePerRequestFilter{
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws ServletException, IOException 
     {
-        var authEncoded        = request.getHeader("Authorization").substring("Basic".length()).trim();
+
+        if (!request.getServletPath().startsWith("/task/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        var auth = request.getHeader("Authorization");
+
+        if (auth == null) {
+            response.sendError(HttpStatus.UNAUTHORIZED.value());
+            return; 
+        }
+
+        var authEncoded        = auth.substring("Basic".length()).trim();
         var authDecodedInBytes = Base64.getDecoder().decode(authEncoded);
         var authCredentials    = new String(authDecodedInBytes).split(":");
         String username = authCredentials[0];
@@ -42,6 +55,7 @@ public class TaskFilterAuth extends OncePerRequestFilter{
             response.sendError(HttpStatus.UNAUTHORIZED.value());
             return;   
         }
+        request.setAttribute("idUser", userFounded.getId());
         filterChain.doFilter(request, response);
             
     }
